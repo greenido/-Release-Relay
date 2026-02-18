@@ -52,17 +52,17 @@ node dist/cli.js \
 
 ### Example — YOUR_COMPANY_NAME Admin Dashboard
 
-Generate release notes for [YOUR_ORG/admin-dashboard](https://github.com/YOUR_ORG/admin-dashboard/) over February 2026 and publish to all channels:
+Generate release notes for [YOUR_ORG/stellar-dashboard](https://github.com/YOUR_ORG/stellar-dashboard/) over February 2026 and publish to all channels:
 
 ```bash
 # Using the compiled CLI
 node dist/cli.js \
   --owner YOUR_ORG \
-  --repo admin-dashboard \
+  --repo stellar-dashboard \
   --from 2026-02-01 \
   --to 2026-02-17 \
   --github-token $GH_TOKEN \
-  --output release-notes/admin-dashboard-release-notes.md \
+  --output release-notes/stellar-dashboard-release-notes.md \
   --publish-slack \
   --publish-discord
 ```
@@ -72,7 +72,7 @@ Or during development (no build step required):
 ```bash
 npm run dev -- \
   --owner YOUR_ORG \
-  --repo admin-dashboard \
+  --repo stellar-dashboard \
   --from 2026-02-01 \
   --to 2026-02-17 \
   --publish-slack

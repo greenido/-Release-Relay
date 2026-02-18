@@ -32,13 +32,13 @@ cat > "$TEST_FILE" << 'EOF'
 
 ### 🚀 Features
 
-- **[PR #3171](https://github.com/YOUR_ORG/admin-dashboard/pull/3171)** – 3156 - Disk Encryption add support for new api
+- **[PR #3171](https://github.com/YOUR_ORG/stellar-dashboard/pull/3171)** – 3156 - Disk Encryption add support for new api
 
   - Author: @guy-espresso
 
   - Merged: 2026-02-15
 
-  - Issue: [#3156](https://github.com/YOUR_ORG/admin-dashboard/issues/3156) – Integrate Device Encryption tab with new endpoint /devices/:deviceId/disk-encryption-config
+  - Issue: [#3156](https://github.com/YOUR_ORG/stellar-dashboard/issues/3156) – Integrate Device Encryption tab with new endpoint /devices/:deviceId/disk-encryption-config
 
     - Labels: priority-P0, X-SMALL
 
@@ -48,13 +48,13 @@ cat > "$TEST_FILE" << 'EOF'
 
 ### 📦 Other Changes
 
-- **[PR #3181](https://github.com/YOUR_ORG/admin-dashboard/pull/3181)** – #2964 Improve global error handling 2
+- **[PR #3181](https://github.com/YOUR_ORG/stellar-dashboard/pull/3181)** – #2964 Improve global error handling 2
 
   - Author: @nnoumegni-els
 
   - Merged: 2026-02-16
 
-  - Issue: [#2964](https://github.com/YOUR_ORG/admin-dashboard/issues/2964) – admin portal is full of console errors
+  - Issue: [#2964](https://github.com/YOUR_ORG/stellar-dashboard/issues/2964) – admin portal is full of console errors
 
     - Labels: bug
 
