@@ -12,6 +12,11 @@ export interface CliOptions {
   githubToken?: string;
   excludeLabels?: string[];
   includeLabels?: string[];
+  publishSlack?: boolean;
+  publishDiscord?: boolean;
+  publishNotion?: boolean;
+  slackWebhook?: string;
+  discordWebhook?: string;
 }
 
 /** Linked issue information extracted from PR title. */
