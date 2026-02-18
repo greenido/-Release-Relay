@@ -1,0 +1,109 @@
+name: Weekly Release Notes to Notion
+
+on:
+  schedule:
+    # Every Thursday at 23:00 UTC
+    - cron: "0 23 * * 4"
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "Start date (YYYY-MM-DD). Defaults to Sunday of current week."
+        required: false
+      to:
+        description: "End date (YYYY-MM-DD). Defaults to today (Thursday)."
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: [your-repo-name]
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Install jq for JSON processing
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Compute date range (Sunday to Thursday)
+        id: dates
+        run: |
+          if [ -n "${{ github.event.inputs.from }}" ]; then
+            FROM="${{ github.event.inputs.from }}"
+          else
+            # Get Sunday of the current week
+            # Day of week: 0=Sunday, 1=Monday, ..., 4=Thursday
+            DAY_OF_WEEK=$(date -u +%w)
+            # Days since Sunday
+            DAYS_SINCE_SUNDAY=$DAY_OF_WEEK
+            FROM=$(date -u -d "$DAYS_SINCE_SUNDAY days ago" +%Y-%m-%d 2>/dev/null || date -u -v-${DAYS_SINCE_SUNDAY}d +%Y-%m-%d)
+          fi
+
+          if [ -n "${{ github.event.inputs.to }}" ]; then
+            TO="${{ github.event.inputs.to }}"
+          else
+            TO=$(date -u +%Y-%m-%d)
+          fi
+
+          echo "from=$FROM" >> "$GITHUB_OUTPUT"
+          echo "to=$TO" >> "$GITHUB_OUTPUT"
+          echo "filename=release-notes/${TO}.md" >> "$GITHUB_OUTPUT"
+
+          # Create a title for the Notion page
+          WEEK_NUM=$(date -u +%V)
+          YEAR=$(date -u +%Y)
+          echo "title=Release Notes - Week $WEEK_NUM, $YEAR ($FROM to $TO)" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        id: generate
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          mkdir -p release-notes
+          node dist/cli.js \
+            --owner "YOUR_ORG" \
+            --repo "${{ matrix.repo }}" \
+            --from "${{ steps.dates.outputs.from }}" \
+            --to "${{ steps.dates.outputs.to }}" \
+            --github-token "$GH_TOKEN" \
+            --output "${{ steps.dates.outputs.filename }}"
+
+          echo "Generated release notes for ${{ matrix.repo }} (${{ steps.dates.outputs.from }} to ${{ steps.dates.outputs.to }})"
+
+      - name: Post to Notion
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: |
+          # Use the dedicated script for posting to Notion
+          # This ensures proper JSON escaping and error handling
+          ./scripts/post-to-notion.sh \
+            "release-notes/${{ steps.dates.outputs.to }}.md" \
+            "${{ steps.dates.outputs.title }} - ${{ matrix.repo }}" \
+            "${{ steps.dates.outputs.from }} to ${{ steps.dates.outputs.to }}" \
+            "YOUR_ORG/${{ matrix.repo }}"
+
+      - name: Upload release notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-${{ matrix.repo }}-${{ steps.dates.outputs.to }}
+          path: release-notes/${{ steps.dates.outputs.to }}.md
+          retention-days: 30

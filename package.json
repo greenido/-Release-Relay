@@ -1,0 +1,43 @@
+{
+  "name": "release-notes-generator",
+  "version": "1.0.0",
+  "description": "Generate structured release notes from GitHub PRs for a given date range",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "release-notes": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:notion": "./scripts/test-notion.sh",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "github",
+    "release-notes",
+    "changelog",
+    "cli"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "commander": "^13.1.0",
+    "dotenv": "^17.3.1",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "nock": "^14.0.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
