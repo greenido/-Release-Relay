@@ -1,3 +1,13 @@
+/**
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file summary.test.ts
+ * @description Unit tests for the summary module. Verifies statistics calculation and summary text generation.
+ * ---------------------------------------------------------------------------------------------
+ */
+
 import { describe, it, expect } from "vitest";
 import {
   computeSummary,

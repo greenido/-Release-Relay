@@ -1,6 +1,13 @@
 /**
- * Generate the full Markdown release notes document.
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file releaseNotes.ts
+ * @description Core logic for generating the Markdown release notes document, including sections for executive summary, changes by category, and contributors.
+ * ---------------------------------------------------------------------------------------------
  */
+
 import { categorizePRs } from "./categorizer.js";
 import {
   buildContributorList,
@@ -11,6 +18,9 @@ import type { CategorizedPRs, ContributorEntry, PullRequestData } from "./types.
 
 /**
  * Render a single PR entry in Markdown.
+ * Includes PR number, link, title, author, merge date, and optional linked issue info.
+ * @param pr The Pull Request data.
+ * @returns Markdown string for the PR.
  */
 function renderPREntry(pr: PullRequestData): string {
   const mergedDate = pr.mergedAt.slice(0, 10);
@@ -47,6 +57,9 @@ function renderPREntry(pr: PullRequestData): string {
 
 /**
  * Render a category section. Returns empty string if there are no PRs.
+ * @param heading Section heading (e.g., "🚀 Features").
+ * @param prs Array of PRs in this category.
+ * @returns Markdown string or empty string.
  */
 function renderCategorySection(
   heading: string,
@@ -59,6 +72,8 @@ function renderCategorySection(
 
 /**
  * Render the Contributors section.
+ * @param contributors Array of contributor entries.
+ * @returns Markdown string.
  */
 function renderContributors(contributors: ContributorEntry[]): string {
   if (contributors.length === 0) return "_No contributors in this period._";
@@ -69,6 +84,13 @@ function renderContributors(contributors: ContributorEntry[]): string {
 
 /**
  * Generate the complete Markdown release notes.
+ * Combines header, executive summary, categorized changes, and contributor list.
+ * @param owner Repository owner.
+ * @param repo Repository name.
+ * @param from Start date.
+ * @param to End date.
+ * @param prs List of merged PRs.
+ * @returns Full Markdown document string.
  */
 export function generateReleaseNotes(
   owner: string,

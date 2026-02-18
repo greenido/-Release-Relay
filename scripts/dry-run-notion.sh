@@ -1,11 +1,18 @@
 #!/bin/bash
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2026. All rights reserved.
+# Licensed under the MIT License. See LICENSE file in the project root for full license information.
+#
+# @file dry-run-notion.sh
+# @description Dry-run script to validate the Notion JSON payload without actually posting to the API.
+#              Useful for debugging payload structure and content formatting.
+# ---------------------------------------------------------------------------------------------
 
-# Dry-run script to validate Notion JSON payload without posting
 # Usage: ./scripts/dry-run-notion.sh <markdown-file> <title> <date-range> <repo-name>
 
 set -e
 
-# Parse arguments
+# --- Argument Parsing & Defaults ---
 MARKDOWN_FILE="${1:-release-notes/test.md}"
 TITLE="${2:-TEST - Release Notes - Week 07, 2026}"
 DATE_RANGE="${3:-2026-02-10 to 2026-02-17}"
@@ -15,13 +22,13 @@ echo "🔍 Notion Payload Dry Run"
 echo "========================"
 echo ""
 echo "Parameters:"
-echo "  File: $MARKDOWN_FILE"
-echo "  Title: $TITLE"
+echo "  File:       $MARKDOWN_FILE"
+echo "  Title:      $TITLE"
 echo "  Date Range: $DATE_RANGE"
-echo "  Repo: $REPO_NAME"
+echo "  Repo:       $REPO_NAME"
 echo ""
 
-# Check if jq is installed
+# --- Dependency Check ---
 if ! command -v jq &> /dev/null; then
   echo "❌ Error: jq is not installed. Please install it first."
   echo "   macOS: brew install jq"
@@ -29,10 +36,13 @@ if ! command -v jq &> /dev/null; then
   exit 1
 fi
 
-# Get week number
+# --- Payload Construction ---
+
+# Get current week number for the Notion 'Week' property
 WEEK_NUM=$(date -u +%V)
 
-# Create JSON payload using jq for proper escaping
+# Construct the JSON payload using jq to ensure proper escaping and structure.
+# This mimics the structure used in the actual post-to-notion.sh script.
 JSON_PAYLOAD=$(jq -n \
   --arg db_id "YOUR_DATABASE_ID_HERE" \
   --arg title "$TITLE" \
@@ -108,6 +118,8 @@ JSON_PAYLOAD=$(jq -n \
       }
     ]
   }')
+
+# --- Output & Validation ---
 
 echo "✅ JSON Payload (valid):"
 echo ""

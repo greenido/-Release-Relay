@@ -1,6 +1,13 @@
 /**
- * Compute the Executive Summary statistics from categorised PRs.
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file summary.ts
+ * @description Utilities for computing statistics and generating summaries for the release notes.
+ * ---------------------------------------------------------------------------------------------
  */
+
 import type {
   CategorizedPRs,
   ContributorEntry,
@@ -10,6 +17,10 @@ import type {
 
 /**
  * Gather aggregate statistics used by the executive summary.
+ * Calculates total PRs, contributors, additions, deletions, files changed, and counts per category.
+ * @param prs List of merged PRs.
+ * @param categorized Categorized PRs object.
+ * @returns Summary statistics object.
  */
 export function computeSummary(
   prs: PullRequestData[],
@@ -33,6 +44,8 @@ export function computeSummary(
 
 /**
  * Build contributor leaderboard sorted by PR count (descending).
+ * @param prs List of merged PRs.
+ * @returns Array of contributor entries.
  */
 export function buildContributorList(
   prs: PullRequestData[],
@@ -50,6 +63,8 @@ export function buildContributorList(
 
 /**
  * Format a number with thousands separator.
+ * @param n Number to format.
+ * @returns Formatted string (e.g., "1,234").
  */
 export function formatNumber(n: number): string {
   return n.toLocaleString("en-US");
@@ -57,6 +72,9 @@ export function formatNumber(n: number): string {
 
 /**
  * Produce the textual executive summary paragraph.
+ * Generates a human-readable summary of the release statistics.
+ * @param stats Summary statistics object.
+ * @returns Markdown formatted summary text.
  */
 export function renderSummaryText(stats: SummaryStats): string {
   const lines: string[] = [];

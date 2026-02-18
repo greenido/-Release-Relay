@@ -1,7 +1,21 @@
+/**
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file publishers.ts
+ * @description Handles publishing of release notes to external platforms like Slack and Discord via webhooks.
+ * ---------------------------------------------------------------------------------------------
+ */
+
 import logger from "./logger.js";
 
 /**
- * Helper to split message into chunks
+ * Helper to split message into chunks.
+ * Ensures no chunk exceeds the maxLength. Tries to split by lines if possible.
+ * @param content The text content to split.
+ * @param maxLength Maximum length of each chunk.
+ * @returns Array of string chunks.
  */
 function splitMessage(content: string, maxLength: number): string[] {
   const chunks: string[] = [];
@@ -28,6 +42,8 @@ function splitMessage(content: string, maxLength: number): string[] {
 /**
  * Send content to Slack via Webhook.
  * Slack specific format: MRKDWN.
+ * @param content The message content (Markdown).
+ * @param webhookUrl The Slack webhook URL.
  */
 export async function publishToSlack(content: string, webhookUrl: string): Promise<void> {
   if (!webhookUrl) {
@@ -95,6 +111,8 @@ export async function publishToSlack(content: string, webhookUrl: string): Promi
  * Send content to Discord via Webhook.
  * Discord supports standard Markdown.
  * Limit: 2000 chars per message. We must split if longer.
+ * @param content The message content (Markdown).
+ * @param webhookUrl The Discord webhook URL.
  */
 export async function publishToDiscord(content: string, webhookUrl: string): Promise<void> {
   if (!webhookUrl) {

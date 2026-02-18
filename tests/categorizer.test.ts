@@ -1,3 +1,13 @@
+/**
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file categorizer.test.ts
+ * @description Unit tests for the categorizer module. Verifies label and keyword matching logic.
+ * ---------------------------------------------------------------------------------------------
+ */
+
 import { describe, it, expect } from "vitest";
 import { categorizePR, categorizePRs } from "../src/categorizer.js";
 import type { PullRequestData } from "../src/types.js";
@@ -15,6 +25,7 @@ function makePR(overrides: Partial<PullRequestData> = {}): PullRequestData {
     milestone: null,
     body: null,
     htmlUrl: "https://github.com/owner/repo/pull/1",
+    linkedIssue: null,
     ...overrides,
   };
 }

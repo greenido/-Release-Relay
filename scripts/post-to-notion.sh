@@ -1,17 +1,24 @@
 #!/bin/bash
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2026. All rights reserved.
+# Licensed under the MIT License. See LICENSE file in the project root for full license information.
+#
+# @file post-to-notion.sh
+# @description Script to post generated markdown release notes to a Notion database.
+#              Parses markdown content, converts it to Notion blocks, and sends via API.
+# ---------------------------------------------------------------------------------------------
 
-# Script to post release notes to Notion
 # Usage: ./scripts/post-to-notion.sh <markdown-file> <title> <date-range> <repo-name>
 
 set -e
 
-# Check required environment variables
+# --- Environment Validation ---
 if [ -z "$NOTION_API_KEY" ] || [ -z "$NOTION_DATABASE_ID" ]; then
-  echo "Error: NOTION_API_KEY and NOTION_DATABASE_ID must be set"
+  echo "Error: NOTION_API_KEY and NOTION_DATABASE_ID must be set in the environment."
   exit 1
 fi
 
-# Parse arguments
+# --- Argument Parsing ---
 MARKDOWN_FILE="${1}"
 TITLE="${2}"
 DATE_RANGE="${3}"
@@ -22,25 +29,30 @@ if [ -z "$MARKDOWN_FILE" ] || [ ! -f "$MARKDOWN_FILE" ]; then
   exit 1
 fi
 
-# Get week number
+# Get current week number for the Notion 'Week' property
 WEEK_NUM=$(date -u +%V)
 
-# Read markdown content
+# Read the entire markdown content into a variable
 CONTENT=$(cat "$MARKDOWN_FILE")
 
-# Function to parse markdown text with links and bold/italic formatting
-# Returns a JSON array of Notion rich_text objects
+# --- Helper Functions ---
+
+# Function: parse_rich_text
+# Description: Parses markdown text with links, bold, and code formatting into Notion rich_text objects.
+# Arguments:
+#   $1 - The text string to parse.
+# Returns: JSON array of Notion rich_text objects.
 parse_rich_text() {
   local text="$1"
   local result="[]"
   
-  # Handle empty input
+  # Handle empty input gracefully
   if [ -z "$text" ]; then
     echo '[{"type": "text", "text": {"content": ""}}]'
     return
   fi
   
-  # Use Python to parse markdown more reliably
+  # Use Python for robust regex parsing of markdown syntax
   result=$(python3 -c "
 import json
 import re
@@ -64,7 +76,7 @@ pos = 0
 combined_pattern = f'({bold_link_pattern})|({link_pattern})|({bold_pattern})|({code_pattern})'
 
 for match in re.finditer(combined_pattern, text):
-    # Add plain text before match
+    # Add plain text occurring before the match
     if match.start() > pos:
         plain = text[pos:match.start()]
         if plain:
@@ -73,7 +85,7 @@ for match in re.finditer(combined_pattern, text):
                 'text': {'content': plain}
             })
     
-    # Add matched element
+    # Add the matched element with appropriate annotations
     if match.group(2) and match.group(3):  # Bold link: **[text](url)**
         rich_text.append({
             'type': 'text',
@@ -106,7 +118,7 @@ for match in re.finditer(combined_pattern, text):
     
     pos = match.end()
 
-# Add remaining plain text
+# Add any remaining plain text after the last match
 if pos < len(text):
     plain = text[pos:]
     if plain:
@@ -115,14 +127,14 @@ if pos < len(text):
             'text': {'content': plain}
         })
 
-# If no rich text elements, return plain text
+# Fallback: If no rich text elements were found, treat entire string as plain text
 if not rich_text:
     rich_text = [{'type': 'text', 'text': {'content': text}}]
 
 print(json.dumps(rich_text))
 " 2>/dev/null)
   
-  # Fallback if Python fails - just return plain text
+  # Fallback if Python fails or is missing - use jq to create a simple text object
   if [ -z "$result" ] || ! echo "$result" | jq empty 2>/dev/null; then
     result=$(jq -n --arg content "$text" '[{"type": "text", "text": {"content": $content}}]')
   fi
@@ -130,8 +142,12 @@ print(json.dumps(rich_text))
   echo "$result"
 }
 
-# Function to convert markdown to Notion blocks
-# This function converts markdown to a JSON array of Notion blocks
+# Function: convert_markdown_to_notion_blocks
+# Description: Converts markdown content into a JSON array of Notion block objects.
+#              Supports headings, lists, code blocks, dividers, and paragraphs.
+# Arguments:
+#   $1 - The full markdown content string.
+# Returns: JSON array of Notion block objects.
 convert_markdown_to_notion_blocks() {
   local markdown="$1"
   local blocks="[]"
@@ -140,7 +156,7 @@ convert_markdown_to_notion_blocks() {
   local code_block_language=""
   
   while IFS= read -r line || [ -n "$line" ]; do
-    # Handle code blocks
+    # --- Handle Code Blocks ---
     if [[ "$line" =~ ^\`\`\`(.*)$ ]]; then
       if [ "$in_code_block" = false ]; then
         # Start of code block
@@ -148,7 +164,7 @@ convert_markdown_to_notion_blocks() {
         code_block_language="${BASH_REMATCH[1]}"
         code_block_content=""
       else
-        # End of code block
+        # End of code block - commit the accumulated content
         in_code_block=false
         if [ -n "$code_block_content" ]; then
           # Remove leading newline if present
@@ -172,17 +188,18 @@ convert_markdown_to_notion_blocks() {
       continue
     fi
     
+    # Accumulate content inside code blocks
     if [ "$in_code_block" = true ]; then
       code_block_content="$code_block_content"$'\n'"$line"
       continue
     fi
     
-    # Skip empty lines
+    # Skip empty lines outside code blocks
     if [ -z "$line" ]; then
       continue
     fi
     
-    # Handle headings
+    # --- Handle Headings ---
     if [[ "$line" =~ ^#\ (.+)$ ]]; then
       text="${BASH_REMATCH[1]}"
       rich_text=$(parse_rich_text "$text")
@@ -216,7 +233,7 @@ convert_markdown_to_notion_blocks() {
             "rich_text": $rich_text
           }
         }]')
-    # Handle numbered lists
+    # --- Handle Lists ---
     elif [[ "$line" =~ ^[0-9]+\.\ (.+)$ ]]; then
       text="${BASH_REMATCH[1]}"
       rich_text=$(parse_rich_text "$text")
@@ -228,7 +245,6 @@ convert_markdown_to_notion_blocks() {
             "rich_text": $rich_text
           }
         }]')
-    # Handle bullet points (both * and -)
     elif [[ "$line" =~ ^[\*\-]\ (.+)$ ]]; then
       text="${BASH_REMATCH[1]}"
       rich_text=$(parse_rich_text "$text")
@@ -240,7 +256,7 @@ convert_markdown_to_notion_blocks() {
             "rich_text": $rich_text
           }
         }]')
-    # Handle horizontal rules
+    # --- Handle Dividers ---
     elif [[ "$line" =~ ^---+$ ]]; then
       blocks=$(echo "$blocks" | jq \
         '. += [{
@@ -248,7 +264,7 @@ convert_markdown_to_notion_blocks() {
           "type": "divider",
           "divider": {}
         }]')
-    # Handle regular paragraphs
+    # --- Handle Paragraphs ---
     else
       rich_text=$(parse_rich_text "$line")
       blocks=$(echo "$blocks" | jq --argjson rich_text "$rich_text" \
@@ -265,10 +281,12 @@ convert_markdown_to_notion_blocks() {
   echo "$blocks"
 }
 
-# Convert markdown to Notion blocks
+# --- Main Logic ---
+
+# Convert markdown content to Notion blocks
 MARKDOWN_BLOCKS=$(convert_markdown_to_notion_blocks "$CONTENT")
 
-# Check if we have too many blocks (Notion API limit is 100 blocks per request)
+# Validate block count against Notion API limits (100 blocks per request)
 BLOCK_COUNT=$(echo "$MARKDOWN_BLOCKS" | jq 'length')
 echo "📊 Converted markdown to $BLOCK_COUNT blocks"
 
@@ -278,7 +296,7 @@ if [ "$BLOCK_COUNT" -gt 97 ]; then
   MARKDOWN_BLOCKS=$(echo "$MARKDOWN_BLOCKS" | jq '.[0:97]')
 fi
 
-# Create initial JSON structure with properties
+# Create initial JSON structure with page properties
 INITIAL_JSON=$(jq -n \
   --arg db_id "$NOTION_DATABASE_ID" \
   --arg title "$TITLE" \
@@ -319,7 +337,7 @@ INITIAL_JSON=$(jq -n \
     "children": []
   }')
 
-# Add header blocks
+# Define header blocks (Title, Repo info, Divider)
 HEADER_BLOCKS=$(jq -n \
   --arg heading "Release Notes: $DATE_RANGE" \
   --arg repo "Repository: $REPO_NAME" \
@@ -359,29 +377,30 @@ HEADER_BLOCKS=$(jq -n \
     }
   ]')
 
-# Combine header blocks with markdown blocks
+# Combine header blocks with converted markdown blocks
 ALL_BLOCKS=$(echo "$HEADER_BLOCKS" | jq --argjson markdown_blocks "$MARKDOWN_BLOCKS" '. + $markdown_blocks')
 
-# Create final JSON payload with all blocks
+# Insert blocks into the main JSON payload
 JSON_PAYLOAD=$(echo "$INITIAL_JSON" | jq --argjson children "$ALL_BLOCKS" '.children = $children')
 
-# Debug: Print the JSON payload (comment out in production)
+# Debug output (optional)
 if [ "${DEBUG:-false}" = "true" ]; then
   echo "=== JSON Payload ==="
   echo "$JSON_PAYLOAD" | jq .
   echo "===================="
 fi
 
-# Post to Notion
+# --- API Execution ---
+
+# Post the payload to the Notion API
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST 'https://api.notion.com/v1/pages' \
   -H "Authorization: Bearer $NOTION_API_KEY" \
   -H "Content-Type: application/json" \
   -H "Notion-Version: 2022-06-28" \
   -d "$JSON_PAYLOAD")
 
-# Extract HTTP status code (last line)
+# Parse response
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-# Extract response body (all but last line)
 RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
 
 echo "HTTP Status: $HTTP_CODE"

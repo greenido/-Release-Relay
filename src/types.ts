@@ -1,5 +1,11 @@
 /**
- * Type definitions for the Release Notes Generator.
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file types.ts
+ * @description TypeScript type definitions and interfaces used throughout the application.
+ * ---------------------------------------------------------------------------------------------
  */
 
 /** CLI options parsed from command-line arguments. */

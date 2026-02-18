@@ -1,19 +1,26 @@
 #!/bin/bash
-
-# Test script for Notion integration
-# This script tests posting to Notion with mock data
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2026. All rights reserved.
+# Licensed under the MIT License. See LICENSE file in the project root for full license information.
+#
+# @file test-notion.sh
+# @description Test script for validating the Notion integration. 
+#              Creates a temporary markdown file and attempts to post it to the configured Notion database.
+# ---------------------------------------------------------------------------------------------
 
 set -e
 
 echo "🧪 Testing Notion Integration"
 echo "=============================="
 
-# Load environment variables
+# --- Setup ---
+
+# Load environment variables if .env file exists
 if [ -f .env ]; then
   export $(cat .env | grep -v '^#' | xargs)
 fi
 
-# Check required environment variables
+# Check for required API credentials
 if [ -z "$NOTION_API_KEY" ] || [ -z "$NOTION_DATABASE_ID" ]; then
   echo "❌ Error: NOTION_API_KEY and NOTION_DATABASE_ID must be set in .env"
   exit 1
@@ -21,12 +28,15 @@ fi
 
 echo "✓ Environment variables loaded"
 
-# Create a test markdown file
+# --- Test Data Creation ---
+
+# Define test file path
 TEST_DIR="release-notes"
 TEST_FILE="$TEST_DIR/test-$(date +%Y-%m-%d-%H%M%S).md"
 
 mkdir -p "$TEST_DIR"
 
+# Generate a sample markdown file with various formatting types
 cat > "$TEST_FILE" << 'EOF'
 # Release Notes Test
 
@@ -71,23 +81,25 @@ EOF
 
 echo "✓ Created test markdown file: $TEST_FILE"
 
-# Test parameters
+# Define test parameters
 TITLE="TEST - Release Notes - Week 07, 2026"
 DATE_RANGE="2026-02-10 to 2026-02-17"
 REPO_NAME="YOUR_ORG/test-repo"
 
 echo ""
 echo "Test Parameters:"
-echo "  Title: $TITLE"
+echo "  Title:      $TITLE"
 echo "  Date Range: $DATE_RANGE"
-echo "  Repo: $REPO_NAME"
+echo "  Repo:       $REPO_NAME"
 echo ""
 
-# Run the post-to-notion script
+# --- Execution ---
+
 echo "📤 Posting to Notion..."
 ./scripts/post-to-notion.sh "$TEST_FILE" "$TITLE" "$DATE_RANGE" "$REPO_NAME"
 
-# Cleanup
+# --- Cleanup ---
+
 rm "$TEST_FILE"
 echo ""
 echo "✅ Test completed successfully!"

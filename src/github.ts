@@ -1,8 +1,13 @@
 /**
- * GitHub API integration – fetches merged PRs within a date range.
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
  *
- * Uses @octokit/rest with proper pagination and rate-limit handling.
+ * @file github.ts
+ * @description GitHub API integration module. Handles fetching merged PRs, handling pagination, rate limits, and extracting issue details.
+ * ---------------------------------------------------------------------------------------------
  */
+
 import { Octokit } from "@octokit/rest";
 import logger from "./logger.js";
 import type { LinkedIssue, PullRequestData } from "./types.js";
@@ -11,6 +16,8 @@ const PER_PAGE = 100;
 
 /**
  * Create an authenticated Octokit instance.
+ * @param token GitHub personal access token.
+ * @returns Octokit instance.
  */
 export function createOctokit(token?: string): Octokit {
   return new Octokit({ auth: token });
@@ -23,6 +30,15 @@ export function createOctokit(token?: string): Octokit {
  *  1. Paginate through closed PRs sorted by updated (descending).
  *  2. Filter for `merged_at` in the requested window.
  *  3. Stop early once we pass the window (PRs sorted by update time).
+ * 
+ * @param octokit Octokit instance.
+ * @param owner Repository owner.
+ * @param repo Repository name.
+ * @param from Start date (YYYY-MM-DD).
+ * @param to End date (YYYY-MM-DD).
+ * @param includeLabels Optional list of labels to include.
+ * @param excludeLabels Optional list of labels to exclude.
+ * @returns Promise resolving to an array of PullRequestData.
  */
 export async function fetchMergedPRs(
   octokit: Octokit,
@@ -140,6 +156,11 @@ export async function fetchMergedPRs(
 
 /**
  * Fetch detailed PR metadata (additions, deletions, changed files).
+ * @param octokit Octokit instance.
+ * @param owner Repository owner.
+ * @param repo Repository name.
+ * @param pullNumber PR number.
+ * @returns Object containing stats.
  */
 async function fetchPRDetail(
   octokit: Octokit,
@@ -169,6 +190,8 @@ async function fetchPRDetail(
  *   - "3156: Feature description" (number with colon separator)
  *   - "#2964 Improve global error handling" (number with # prefix)
  *   - "3178 edr virus scan event type handle" (number followed by space and text)
+ * @param title PR title string.
+ * @returns Issue number or null if not found.
  */
 export function extractIssueNumber(title: string): number | null {
   // Pattern 1: Conventional commit with issue number in parentheses (e.g., "fix(634): description")
@@ -202,6 +225,8 @@ export function extractIssueNumber(title: string): number | null {
 /**
  * Infer issue type from labels.
  * Common patterns: bug, feature, enhancement, documentation, etc.
+ * @param labels Array of label strings.
+ * @returns Infers type as string (e.g., "Bug", "Feature", "Other").
  */
 function inferIssueType(labels: string[]): string {
   const lowerLabels = labels.map((l) => l.toLowerCase());
@@ -231,6 +256,11 @@ function inferIssueType(labels: string[]): string {
 /**
  * Fetch issue details from GitHub.
  * Returns null if issue doesn't exist or can't be fetched.
+ * @param octokit Octokit instance.
+ * @param owner Repository owner.
+ * @param repo Repository name.
+ * @param issueNumber Issue number.
+ * @returns LinkedIssue object or null.
  */
 async function fetchIssueDetails(
   octokit: Octokit,

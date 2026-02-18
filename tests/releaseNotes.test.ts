@@ -1,3 +1,13 @@
+/**
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file releaseNotes.test.ts
+ * @description Unit tests for the releaseNotes module. Verifies the markdown generation output.
+ * ---------------------------------------------------------------------------------------------
+ */
+
 import { describe, it, expect } from "vitest";
 import { generateReleaseNotes } from "../src/releaseNotes.js";
 import type { PullRequestData } from "../src/types.js";

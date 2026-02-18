@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 /**
- * CLI entry point for the Release Notes Generator.
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file cli.ts
+ * @description CLI entry point for the Release Notes Generator. Handles argument parsing, validation, and orchestration of the release notes generation process.
+ * ---------------------------------------------------------------------------------------------
  */
+
 import "dotenv/config";
 import { Command } from "commander";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -21,7 +28,29 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
+ * Custom error class for CLI validation failures.
+ */
+class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+/**
+ * Custom error class for GitHub API failures.
+ */
+class GitHubApiError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GitHubApiError";
+  }
+}
+
+/**
  * Validate CLI options. Throws on invalid input.
+ * @param opts Parsed CLI options.
+ * @throws {ValidationError} If date format is invalid or logic is incorrect.
  */
 function validateOptions(opts: CliOptions): void {
   if (!ISO_DATE_REGEX.test(opts.from)) {
@@ -45,22 +74,10 @@ function validateOptions(opts: CliOptions): void {
   }
 }
 
-class ValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
-
-class GitHubApiError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "GitHubApiError";
-  }
-}
-
 /**
  * Parse comma-separated label strings into arrays.
+ * @param val Comma-separated string.
+ * @returns Array of trimmed strings.
  */
 function parseLabels(val: string): string[] {
   return val
@@ -71,11 +88,19 @@ function parseLabels(val: string): string[] {
 
 /**
  * Generate default output filename in format: release-notes/repo_from-date_to-date.md
+ * @param repo Repository name.
+ * @param from Start date string.
+ * @param to End date string.
+ * @returns Default file path.
  */
 function generateDefaultOutputFilename(repo: string, from: string, to: string): string {
   return `release-notes/${repo}_${from}_${to}.md`;
 }
 
+/**
+ * Main execution function.
+ * Sets up CLI command, parses arguments, and invokes the release notes generation logic.
+ */
 async function main(): Promise<void> {
   const program = new Command();
 

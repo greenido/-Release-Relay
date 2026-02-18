@@ -1,3 +1,13 @@
+/**
+ * ---------------------------------------------------------------------------------------------
+ * Copyright (c) 2026. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ *
+ * @file github.test.ts
+ * @description Unit tests for the github module. Verifies PR fetching, filtering, and issue extraction.
+ * ---------------------------------------------------------------------------------------------
+ */
+
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import nock from "nock";
 import { createOctokit, fetchMergedPRs, extractIssueNumber } from "../src/github.js";
