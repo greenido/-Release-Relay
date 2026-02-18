@@ -1,7 +1,7 @@
 # Release Notes Generator 📝 + 📆 = ✅
 
 <p align="center">
-  <img src="app-logo.png" alt="Release Notes Generator Logo" width="200">
+  <img src="app-logo.png" alt="Release Notes Generator Logo" width="500">
 </p>
 
 A CLI tool that generates structured, executive-ready Markdown release notes from a GitHub repository for a specified date range. It can also be used as a GitHub Action to generate release notes and post them to Notion, Slack, and Discord.
